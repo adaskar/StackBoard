@@ -12,22 +12,44 @@ namespace StackBoard
 {
     partial class ClipboardManager : IDisposable
     {
+        private class ClipboardItem
+        {
+            public DateTime Time { get; set; } = DateTime.Now;
+            public object Item { get; set; }
+
+            public ClipboardItem(object item)
+            {
+                Item = item;
+            }
+        }
+
         ClipboardListener _listener;
-        Stack<object> _history;
+        Stack<ClipboardItem> _history;
+        ClipboardItem _lastItem;
 
         public ClipboardManager()
         {
             _listener = new ClipboardListener();
             _listener.ClipboardChanged += _listener_ClipboardChanged;
 
-            _history = new Stack<object>();
+            _history = new Stack<ClipboardItem>();
         }
 
         private void _listener_ClipboardChanged(object sender, EventArgs e)
         {
             if (Clipboard.ContainsText())
             {
-                _history.Push(Clipboard.GetText());
+                ClipboardItem ci = new ClipboardItem(Clipboard.GetText());
+
+                // if user pressed ctrl c in less then one second for same item, 
+                // add the item in the history so user will be able to use it.
+                if (_lastItem != null &&
+                    $"{ci.Item}" == $"{_lastItem.Item}" &&
+                    $"{ci.Item}" != $"{(_history.Count > 0 ? _history.Peek()?.Item : null)}" &&
+                    ci.Time.Subtract(_lastItem.Time).TotalMilliseconds < 1000)
+                    _history.Push(ci);
+
+                _lastItem = ci;
             }
             if (Clipboard.ContainsFileDropList())
             {
@@ -47,9 +69,7 @@ namespace StackBoard
         {
             if (_history.Count == 0)
                 return null;
-            if (_history.Count == 1)
-                return _history.Peek();
-            return _history.Pop();
+            return _history.Pop().Item;
         }
 
         public void StartListen()
