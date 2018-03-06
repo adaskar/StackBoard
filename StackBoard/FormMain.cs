@@ -15,17 +15,30 @@ namespace StackBoard
         public FormMain()
         {
             InitializeComponent();
-            Button b = new Button();
-            b.Click += (s, e) => this.Text = $"{cm.GetNext()}";
-            this.Controls.Add(b);
         }
 
         ClipboardManager cm;
+        KeyboardHandler kh;
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+
+            kh = new KeyboardHandler();
+            kh.KeyPressed += (sender, args) =>
+            {
+                if ((args.Keys & Keys.Control) == Keys.Control &&
+                    (args.Keys & Keys.V) == Keys.V)
+                {
+                    cm.SetNext();
+                }
+            };
+            kh.Init();
+
+
+
             cm = new ClipboardManager();
             cm.StartListen();
         }
+
     }
 }

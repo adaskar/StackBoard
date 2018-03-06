@@ -65,11 +65,23 @@ namespace StackBoard
             }
         }
 
-        public object GetNext()
+        private object GetNext()
         {
             if (_history.Count == 0)
                 return null;
-            return _history.Pop().Item;
+            ClipboardItem ci = _history.Pop();
+            _lastItem = _history.Count > 0 ? _history.Peek() : null;
+            return ci.Item;
+        }
+
+        public void SetNext()
+        {
+            if (_history.Count == 0)
+                return;
+
+            _listener.ClipboardChanged -= _listener_ClipboardChanged;
+            Clipboard.SetText($"{GetNext()}");
+            _listener.ClipboardChanged += _listener_ClipboardChanged;
         }
 
         public void StartListen()

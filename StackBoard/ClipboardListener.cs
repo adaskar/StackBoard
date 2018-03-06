@@ -34,9 +34,9 @@ namespace StackBoard
                     return;
 
                 _next = Native.SetClipboardViewer(_this);
-                if (_next == IntPtr.Zero &&
-                    Native.GetLastError() != 0)
-                    throw new Win32Exception(Native.GetLastError());
+                //if (_next == IntPtr.Zero &&
+                //    Native.GetLastError() != 0)
+                //    throw new Win32Exception(Native.GetLastError());
             }
 
             public void StopListen()
@@ -53,7 +53,7 @@ namespace StackBoard
 
             protected override void WndProc(ref Message m)
             {
-                if (m.Msg == Native.WM_DRAWCLIPBOARD)
+                if (m.Msg == (int)Native.WM.DRAWCLIPBOARD)
                 {
                     this.ClipboardChanged?.Invoke(this, EventArgs.Empty);
                 }
